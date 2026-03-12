@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Buddy Blitz Live Tracker</title>
+  <style>
+    :root {
+      --green-dark: #0f6b43;
+      --green: #198754;
+      --green-light: #eaf7ef;
+      --gold: #d4af37;
+      --gold-soft: #fff8df;
+      --red: #d64545;
+      --gray-900: #1f2937;
+      --gray-700: #4b5563;
+      --gray-300: #d1d5db;
+      --white: #ffffff;
+      --shadow: 0 10px 30px rgba(15, 107, 67, 0.12);
+      --radius: 16px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--gray-900);
+      background:
+        radial-gradient(circle at top right, rgba(212,175,55,0.18), transparent 18%),
+        radial-gradient(circle at top left, rgba(25,135,84,0.14), transparent 20%),
+        linear-gradient(180deg, #f8fbf8 0%, #eef8f0 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .app { max-width: 880px; margin: 0 auto; }
+
+    .hero {
+      background: linear-gradient(135deg, #ffffff 0%, #f8fff9 100%);
+      border: 1px solid rgba(25,135,84,0.12);
+      border-top: 8px solid var(--green);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    .hero-top {
+      padding: 30px 20px 15px;
+      text-align: center;
+    }
+
+    .hero-kicker {
+      display: inline-block;
+      background: var(--gold-soft);
+      color: #8b6b00;
+      border: 1px solid rgba(212,175,55,0.45);
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 15px;
+    }
+
+    .company-title {
+      color: var(--green-dark);
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 36px;
+      line-height: 1.1;
+      color: var(--green-dark);
+      text-transform: uppercase;
+    }
+
+    .subtext {
+      margin: 0 auto 15px;
+      max-width: 600px;
+      color: var(--gray-700);
+      font-size: 15px;
+      line-height: 1.5;
+    }
+
+    .sparkles { font-size: 22px; margin-bottom: 10px; }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 20px;
+      padding: 0 20px 20px;
+    }
+
+    .panel {
+      background: var(--white);
+      border: 1px solid rgba(25,135,84,0.12);
+      border-radius: 14px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.04);
+      padding: 20px;
+    }
+
+    .panel h2 {
+      margin: 0 0 15px;
+      font-size: 20px;
+      color: var(--green-dark);
+      border-bottom: 2px solid rgba(212,175,55,0.45);
+      padding-bottom: 10px;
+    }
+
+    .form-group { margin-bottom: 15px; }
+    
+    label {
+      display: block;
+      font-size: 14px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: var(--gray-900);
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 12px 13px;
+      border: 1px solid var(--gray-300);
+      border-radius: 10px;
+      font-size: 15px;
+      outline: none;
+    }
+
+    input[type="text"]:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px rgba(25,135,84,0.12);
+    }
+
+    .checks {
+      display: grid;
+      gap: 12px;
+      background: var(--green-light);
+      border: 1px solid rgba(25,135,84,0.12);
+      border-radius: 12px;
+      padding: 15px;
+      margin-bottom: 15px;
+    }
+
+    .check-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .check-row input { transform: scale(1.3); cursor: pointer; }
+    .check-row label { margin: 0; font-size: 16px; cursor: pointer; }
+
+    .btn-primary {
+      width: 100%;
+      padding: 16px;
+      color: white;
+      background: linear-gradient(135deg, var(--green) 0%, var(--green-dark) 100%);
+      font-size: 18px;
+      font-weight: bold;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      text-transform: uppercase;
+      box-shadow: 0 6px 12px rgba(15,107,67,0.2);
+    }
+
+    .btn-primary:hover { opacity: 0.95; }
+
+    .btn-secondary {
+      padding: 10px 15px;
+      font-size: 13px;
+      color: var(--red);
+      background: #fff;
+      border: 1px solid rgba(214,69,69,0.35);
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      width: 100%;
+      margin-top: 20px;
+    }
+
+    .leaderboard-empty {
+      text-align: center;
+      color: var(--gray-700);
+      padding: 20px;
+      background: #fafafa;
+      border: 1px dashed var(--gray-300);
+      border-radius: 12px;
+    }
+
+    .leader-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px;
+      margin-bottom: 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(25,135,84,0.15);
+      background: #fff;
+    }
+
+    .leader-info { display: flex; align-items: center; gap: 12px; }
+
+    .rank {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: #eff7f1;
+      color: var(--green-dark);
+      font-weight: 800;
+      font-size: 16px;
+    }
+
+    .leader-name { font-weight: 800; font-size: 16px; }
+    
+    .score-block { text-align: right; }
+    .score { font-size: 22px; font-weight: 900; color: var(--green-dark); }
+
+    .badge {
+      display: inline-block;
+      margin-top: 4px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .badge-prize { background: var(--gold-soft); color: #8b6b00; border: 1px solid rgba(212,175,55,0.4); }
+    .badge-danger { background: #fdeaea; color: #a32626; border: 1px solid rgba(214,69,69,0.32); }
+    .badge-safe { background: #eef7ff; color: #245f9a; border: 1px solid rgba(18,160,220,0.25); }
+
+    .small-note {
+      margin-top: 15px;
+      color: var(--gray-700);
+      font-size: 12px;
+      line-height: 1.5;
+      text-align: center;
+    }
+
+    @media (max-width: 760px) {
+      .layout { grid-template-columns: 1fr; }
+      h1 { font-size: 28px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="hero">
+      <div class="hero-top">
+        <div class="company-title">Circle MSP</div>
+        <div class="hero-kicker">Field Blitz Live Tracker</div>
+        <h1>Buddy Blitz Friday 3/13</h1>
+        <div class="sparkles">🍀 ✨ 🏆 ✨ 🍀</div>
+        <p class="subtext">
+          Log visits, stack points, and watch the whole team move up the board in real time.
+        </p>
+      </div>
+
+      <div class="layout">
+        <!-- Input Panel -->
+        <div class="panel">
+          <h2>Log Your Results</h2>
+          
+          <div class="form-group">
+            <label for="repName">Rep or Team Name</label>
+            <input type="text" id="repName" placeholder="Example: Team Alpha" />
+          </div>
+
+          <div class="form-group">
+            <label for="clientName">Client Visited</label>
+            <input type="text" id="clientName" placeholder="Example: Acme Manufacturing" />
+          </div>
+
+          <div class="checks">
+            <div class="check-row">
+              <input type="checkbox" id="selfie" />
+              <label for="selfie">📸 Client Selfie (+2 points)</label>
+            </div>
+            <div class="check-row">
+              <input type="checkbox" id="sit" />
+              <label for="sit">🪑 The Sit (+5 points)</label>
+            </div>
+            <div class="check-row">
+              <input type="checkbox" id="appt" />
+              <label for="appt">📅 Appointment Set (+10 points)</label>
+            </div>
+          </div>
+
+          <button class="btn-primary" onclick="submitScore()">Stack Points!</button>
+        </div>
+
+        <!-- Leaderboard Panel -->
+        <div class="panel">
+          <h2>Live Leaderboard</h2>
+
+          <div id="leaderboard">
+            <div class="leaderboard-empty">No entries yet. Go get some points.</div>
+          </div>
+
+          <button class="btn-secondary" onclick="clearData()">🗑️ Reset Scoreboard</button>
+
+          <div class="small-note">
+            <strong>Prizes:</strong> 1st = $100, 2nd = $60, 3rd = $40.<br>
+            <strong>Penalty:</strong> Bottom two teams do cold calls ONLY if they fall 20+ points behind 3rd place.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase Scripts -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+  <script>
+    // 🚨 PASTE YOUR FIREBASE CONFIG HERE 🚨
+    const firebaseConfig = {
+  apiKey: "AIzaSyDzB90fTwtHI9fozfVOUGAJePwjyzVou9c",
+  authDomain: "st-patricks-day-2026-7874a.firebaseapp.com",
+  databaseURL: "https://st-patricks-day-2026-7874a-default-rtdb.firebaseio.com",
+  projectId: "st-patricks-day-2026-7874a",
+  storageBucket: "st-patricks-day-2026-7874a.firebasestorage.app",
+  messagingSenderId: "680943775982",
+  appId: "1:680943775982:web:bbf37d70fcc792eef583ff"
+};
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const entriesRef = db.ref("blitz_entries");
+
+    // Submit Score Function
+    function submitScore() {
+      const repName = document.getElementById("repName").value.trim();
+      const clientName = document.getElementById("clientName").value.trim();
+      
+      let points = 0;
+      if (document.getElementById("selfie").checked) points += 2;
+      if (document.getElementById("sit").checked) points += 5;
+      if (document.getElementById("appt").checked) points += 10;
+
+      if (!repName || !clientName) {
+        alert("Please enter both the Rep Name and Client Name.");
+        return;
+      }
+      if (points === 0) {
+        alert("Please select at least one engagement type to score points.");
+        return;
+      }
+
+      // Save to Firebase
+      entriesRef.push({
+        rep: repName,
+        client: clientName,
+        points: points,
+        timestamp: Date.now()
+      }).then(() => {
+        // Reset Form and alert success
+        document.getElementById("clientName").value = "";
+        document.getElementById("selfie").checked = false;
+        document.getElementById("sit").checked = false;
+        document.getElementById("appt").checked = false;
+        alert(`Awesome! ${repName} just scored ${points} points!`);
+      }).catch((error) => {
+        alert("Error saving score. Please check Firebase rules. " + error.message);
+      });
+    }
+
+    // Leaderboard Live Update Function
+    entriesRef.on("value", (snapshot) => {
+      const data = snapshot.val();
+      const leaderboard = document.getElementById("leaderboard");
+      
+      if (!data) {
+        leaderboard.innerHTML = '<div class="leaderboard-empty">No entries yet. Go get some points.</div>';
+        return;
+      }
+
+      // Add up points for each rep
+      const scores = {};
+      Object.keys(data).forEach((id) => {
+        const entry = data[id];
+        scores[entry.rep] = (scores[entry.rep] || 0) + entry.points;
+      });
+
+      // Sort from highest to lowest
+      const sorted = Object.keys(scores)
+        .map(rep => ({ name: rep, score: scores[rep] }))
+        .sort((a, b) => b.score - a.score);
+
+      // Calculate Safety Line (20 points behind 3rd place)
+      let safetyLine = null;
+      if (sorted.length >= 3) {
+        safetyLine = sorted[2].score - 20;
+      }
+
+      // Draw the board
+      leaderboard.innerHTML = "";
+      sorted.forEach((item, index) => {
+        const rank = index + 1;
+        let badgeHTML = "";
+
+        // Prizes
+        if (rank === 1) badgeHTML = '<div class="badge badge-prize">🥇 1st Place ($100)</div>';
+        else if (rank === 2) badgeHTML = '<div class="badge badge-prize">🥈 2nd Place ($60)</div>';
+        else if (rank === 3) badgeHTML = '<div class="badge badge-prize">🥉 3rd Place ($40)</div>';
+        
+        // Cold Call Penalty Logic
+        const isBottomTwo = (sorted.length >= 5 && (rank === sorted.length || rank === sorted.length - 1));
+        if (isBottomTwo && safetyLine !== null) {
+          if (item.score < safetyLine) {
+            badgeHTML = '<div class="badge badge-danger">🚨 Cold Call Zone</div>';
+          } else {
+            badgeHTML = '<div class="badge badge-safe">🛡️ Safe from penalty</div>';
+          }
+        }
+
+        const row = document.createElement("div");
+        row.className = "leader-row";
+        row.innerHTML = `
+          <div class="leader-info">
+            <div class="rank">${rank}</div>
+            <div>
+              <div class="leader-name">${item.name}</div>
+              ${badgeHTML}
+            </div>
+          </div>
+          <div class="score-block">
+            <div class="score">${item.score}</div>
+            <div style="font-size:12px;color:var(--gray-700);">pts</div>
+          </div>
+        `;
+        leaderboard.appendChild(row);
+      });
+    });
+
+    // Password Protected Reset
+    function clearData() {
+      const password = prompt("Admin access required. Enter the password to reset the scoreboard:");
+      
+      if (password === "222940") {
+        if(confirm("Are you absolutely sure you want to delete all data? This cannot be undone.")) {
+          entriesRef.remove()
+            .then(() => alert("Scoreboard has been reset."))
+            .catch(error => alert("Reset failed: " + error.message));
+        }
+      } else if (password !== null) {
+        alert("Incorrect password. Scoreboard remains active.");
+      }
+    }
+  </script>
+</body>
+</html>
