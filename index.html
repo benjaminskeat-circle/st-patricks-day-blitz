@@ -248,9 +248,81 @@
       text-align: center;
     }
 
+    /* Trash Talk Chat Styles */
+    .chat-panel {
+      background: var(--white);
+      border: 1px solid rgba(25,135,84,0.12);
+      border-radius: 14px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.04);
+      padding: 20px;
+      margin-top: 20px;
+      grid-column: 1 / -1; 
+    }
+    
+    .chat-panel h2 {
+      margin: 0 0 15px;
+      font-size: 20px;
+      color: var(--green-dark);
+      border-bottom: 2px solid rgba(212,175,55,0.45);
+      padding-bottom: 10px;
+    }
+
+    .chat-box {
+      height: 250px;
+      background: #fafafa;
+      border: 1px inset var(--gray-300);
+      border-radius: 12px;
+      padding: 15px;
+      overflow-y: auto;
+      margin-bottom: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .chat-msg {
+      background: #fff;
+      padding: 10px 14px;
+      border-radius: 12px;
+      border-left: 4px solid var(--green);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+      font-size: 14px;
+    }
+
+    .chat-author {
+      font-weight: 800;
+      color: var(--green-dark);
+      margin-bottom: 4px;
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+
+    .chat-input-group {
+      display: flex;
+      gap: 10px;
+    }
+
+    .chat-input-group input {
+      flex: 1;
+    }
+
+    .btn-chat {
+      background: var(--gray-900);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 0 20px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .btn-chat:hover { background: #000; }
+
     @media (max-width: 760px) {
       .layout { grid-template-columns: 1fr; }
       h1 { font-size: 28px; }
+      .chat-input-group { flex-direction: column; }
+      .btn-chat { padding: 12px; }
     }
   </style>
 </head>
@@ -263,7 +335,7 @@
         <h1>Buddy Blitz Friday 3/13</h1>
         <div class="sparkles">🍀 ✨ 🏆 ✨ 🍀</div>
         <p class="subtext">
-          Log visits, stack points, and watch the whole team move up the board in real time.
+          Log visits, stack points, and talk trash as you move up the board in real time.
         </p>
       </div>
 
@@ -308,13 +380,27 @@
             <div class="leaderboard-empty">No entries yet. Go get some points.</div>
           </div>
 
-          <button class="btn-secondary" onclick="clearData()">🗑️ Reset Scoreboard</button>
+          <button class="btn-secondary" onclick="clearData()">🗑️ Reset Scoreboard & Chat</button>
 
           <div class="small-note">
             <strong>Prizes:</strong> 1st = $100, 2nd = $60, 3rd = $40.<br>
-            <strong>Penalty:</strong> Bottom team does cold calls for the winning team during next weeks blitz ONLY if they fall 20+ points behind 3rd place.
+            <strong>Penalty:</strong> Bottom two teams do cold calls ONLY if they fall 20+ points behind 3rd place.
           </div>
         </div>
+
+        <!-- Trash Talk Chat Panel -->
+        <div class="chat-panel">
+          <h2>💬 Live Trash Talk</h2>
+          <div class="chat-box" id="chatBox">
+            <div style="text-align:center; color:#999; margin-top:20px;">No messages yet. Start the trash talk!</div>
+          </div>
+          <div class="chat-input-group">
+            <input type="text" id="chatAuthor" placeholder="Your Name" style="max-width: 150px;" />
+            <input type="text" id="chatMessage" placeholder="Type a message..." onkeypress="handleChatEnter(event)" />
+            <button class="btn-chat" onclick="sendChat()">Send</button>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
@@ -340,7 +426,13 @@
     const db = firebase.database();
     const entriesRef = db.ref("blitz_entries");
 
-    // Submit Score Function
+    // Database References
+    const entriesRef = db.ref("blitz_entries");
+    const chatsRef = db.ref("blitz_chats");
+
+    // ==========================================
+    // SCOREBOARD LOGIC
+    // ==========================================
     function submitScore() {
       const repName = document.getElementById("repName").value.trim();
       const clientName = document.getElementById("clientName").value.trim();
@@ -377,7 +469,6 @@
       });
     }
 
-    // Leaderboard Live Update Function
     entriesRef.on("value", (snapshot) => {
       const data = snapshot.val();
       const leaderboard = document.getElementById("leaderboard");
@@ -387,36 +478,30 @@
         return;
       }
 
-      // Add up points for each rep
       const scores = {};
       Object.keys(data).forEach((id) => {
         const entry = data[id];
         scores[entry.rep] = (scores[entry.rep] || 0) + entry.points;
       });
 
-      // Sort from highest to lowest
       const sorted = Object.keys(scores)
         .map(rep => ({ name: rep, score: scores[rep] }))
         .sort((a, b) => b.score - a.score);
 
-      // Calculate Safety Line (20 points behind 3rd place)
       let safetyLine = null;
       if (sorted.length >= 3) {
         safetyLine = sorted[2].score - 20;
       }
 
-      // Draw the board
       leaderboard.innerHTML = "";
       sorted.forEach((item, index) => {
         const rank = index + 1;
         let badgeHTML = "";
 
-        // Prizes
         if (rank === 1) badgeHTML = '<div class="badge badge-prize">🥇 1st Place ($100)</div>';
         else if (rank === 2) badgeHTML = '<div class="badge badge-prize">🥈 2nd Place ($60)</div>';
         else if (rank === 3) badgeHTML = '<div class="badge badge-prize">🥉 3rd Place ($40)</div>';
         
-        // Cold Call Penalty Logic
         const isBottomTwo = (sorted.length >= 5 && (rank === sorted.length || rank === sorted.length - 1));
         if (isBottomTwo && safetyLine !== null) {
           if (item.score < safetyLine) {
@@ -445,21 +530,77 @@
       });
     });
 
-    // Password Protected Reset
+    // ==========================================
+    // TRASH TALK CHAT LOGIC
+    // ==========================================
+    function sendChat() {
+      const author = document.getElementById("chatAuthor").value.trim() || "Anonymous Rep";
+      const message = document.getElementById("chatMessage").value.trim();
+
+      if (!message) return;
+
+      chatsRef.push({
+        author: author,
+        text: message,
+        timestamp: Date.now()
+      });
+
+      document.getElementById("chatMessage").value = "";
+    }
+
+    function handleChatEnter(e) {
+      if (e.key === "Enter") sendChat();
+    }
+
+    chatsRef.on("value", (snapshot) => {
+      const data = snapshot.val();
+      const chatBox = document.getElementById("chatBox");
+      
+      if (!data) {
+        chatBox.innerHTML = '<div style="text-align:center; color:#999; margin-top:20px;">No messages yet. Start the trash talk!</div>';
+        return;
+      }
+
+      chatBox.innerHTML = "";
+      const chats = Object.values(data).sort((a, b) => a.timestamp - b.timestamp);
+
+      chats.forEach(chat => {
+        const safeAuthor = String(chat.author).replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        const safeText = String(chat.text).replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        
+        chatBox.innerHTML += `
+          <div class="chat-msg">
+            <div class="chat-author">${safeAuthor}</div>
+            <div>${safeText}</div>
+          </div>
+        `;
+      });
+
+      // Auto-scroll to the bottom for the newest message
+      chatBox.scrollTop = chatBox.scrollHeight;
+    });
+
+    // ==========================================
+    // RESET LOGIC
+    // ==========================================
     function clearData() {
-      const password = prompt("Admin access required. Enter the password to reset the scoreboard:");
+      const password = prompt("Admin access required. Enter the password to reset the scoreboard and chat:");
       
       if (password === "222940") {
-        if(confirm("Are you absolutely sure you want to delete all data? This cannot be undone.")) {
+        if(confirm("Are you absolutely sure you want to delete all scoreboard AND chat data? This cannot be undone.")) {
+          // Remove scores
           entriesRef.remove()
-            .then(() => alert("Scoreboard has been reset."))
+            .then(() => {
+              // Remove chats
+              return chatsRef.remove();
+            })
+            .then(() => alert("Scoreboard and Chat have been completely reset."))
             .catch(error => alert("Reset failed: " + error.message));
         }
       } else if (password !== null) {
-        alert("Incorrect password. Scoreboard remains active.");
+        alert("Incorrect password. Data remains active.");
       }
     }
   </script>
 </body>
 </html>
-
