@@ -410,22 +410,21 @@
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
   <script>
-    // 🚨 PASTE YOUR FIREBASE CONFIG HERE 🚨
+    // 🚨 FIREBASE CONFIGURATION 🚨
     const firebaseConfig = {
-  apiKey: "AIzaSyDzB90fTwtHI9fozfVOUGAJePwjyzVou9c",
-  authDomain: "st-patricks-day-2026-7874a.firebaseapp.com",
-  databaseURL: "https://st-patricks-day-2026-7874a-default-rtdb.firebaseio.com",
-  projectId: "st-patricks-day-2026-7874a",
-  storageBucket: "st-patricks-day-2026-7874a.firebasestorage.app",
-  messagingSenderId: "680943775982",
-  appId: "1:680943775982:web:bbf37d70fcc792eef583ff"
-};
+      apiKey: "AIzaSyDzB90fTwtHI9fozfVOUGAJePwjyzVou9c",
+      authDomain: "st-patricks-day-2026-7874a.firebaseapp.com",
+      databaseURL: "https://st-patricks-day-2026-7874a-default-rtdb.firebaseio.com",
+      projectId: "st-patricks-day-2026-7874a",
+      storageBucket: "st-patricks-day-2026-7874a.firebasestorage.app",
+      messagingSenderId: "680943775982",
+      appId: "1:680943775982:web:bbf37d70fcc792eef583ff"
+    };
 
     // Initialize Firebase
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
-    const entriesRef = db.ref("blitz_entries");
-
+    
     // Database References
     const entriesRef = db.ref("blitz_entries");
     const chatsRef = db.ref("blitz_chats");
@@ -500,107 +499,4 @@
 
         if (rank === 1) badgeHTML = '<div class="badge badge-prize">🥇 1st Place ($100)</div>';
         else if (rank === 2) badgeHTML = '<div class="badge badge-prize">🥈 2nd Place ($60)</div>';
-        else if (rank === 3) badgeHTML = '<div class="badge badge-prize">🥉 3rd Place ($40)</div>';
-        
-        const isBottomTwo = (sorted.length >= 5 && (rank === sorted.length || rank === sorted.length - 1));
-        if (isBottomTwo && safetyLine !== null) {
-          if (item.score < safetyLine) {
-            badgeHTML = '<div class="badge badge-danger">🚨 Cold Call Zone</div>';
-          } else {
-            badgeHTML = '<div class="badge badge-safe">🛡️ Safe from penalty</div>';
-          }
-        }
-
-        const row = document.createElement("div");
-        row.className = "leader-row";
-        row.innerHTML = `
-          <div class="leader-info">
-            <div class="rank">${rank}</div>
-            <div>
-              <div class="leader-name">${item.name}</div>
-              ${badgeHTML}
-            </div>
-          </div>
-          <div class="score-block">
-            <div class="score">${item.score}</div>
-            <div style="font-size:12px;color:var(--gray-700);">pts</div>
-          </div>
-        `;
-        leaderboard.appendChild(row);
-      });
-    });
-
-    // ==========================================
-    // TRASH TALK CHAT LOGIC
-    // ==========================================
-    function sendChat() {
-      const author = document.getElementById("chatAuthor").value.trim() || "Anonymous Rep";
-      const message = document.getElementById("chatMessage").value.trim();
-
-      if (!message) return;
-
-      chatsRef.push({
-        author: author,
-        text: message,
-        timestamp: Date.now()
-      });
-
-      document.getElementById("chatMessage").value = "";
-    }
-
-    function handleChatEnter(e) {
-      if (e.key === "Enter") sendChat();
-    }
-
-    chatsRef.on("value", (snapshot) => {
-      const data = snapshot.val();
-      const chatBox = document.getElementById("chatBox");
-      
-      if (!data) {
-        chatBox.innerHTML = '<div style="text-align:center; color:#999; margin-top:20px;">No messages yet. Start the trash talk!</div>';
-        return;
-      }
-
-      chatBox.innerHTML = "";
-      const chats = Object.values(data).sort((a, b) => a.timestamp - b.timestamp);
-
-      chats.forEach(chat => {
-        const safeAuthor = String(chat.author).replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        const safeText = String(chat.text).replace(/</g, "&lt;").replace(/>/g, "&gt;");
-        
-        chatBox.innerHTML += `
-          <div class="chat-msg">
-            <div class="chat-author">${safeAuthor}</div>
-            <div>${safeText}</div>
-          </div>
-        `;
-      });
-
-      // Auto-scroll to the bottom for the newest message
-      chatBox.scrollTop = chatBox.scrollHeight;
-    });
-
-    // ==========================================
-    // RESET LOGIC
-    // ==========================================
-    function clearData() {
-      const password = prompt("Admin access required. Enter the password to reset the scoreboard and chat:");
-      
-      if (password === "222940") {
-        if(confirm("Are you absolutely sure you want to delete all scoreboard AND chat data? This cannot be undone.")) {
-          // Remove scores
-          entriesRef.remove()
-            .then(() => {
-              // Remove chats
-              return chatsRef.remove();
-            })
-            .then(() => alert("Scoreboard and Chat have been completely reset."))
-            .catch(error => alert("Reset failed: " + error.message));
-        }
-      } else if (password !== null) {
-        alert("Incorrect password. Data remains active.");
-      }
-    }
-  </script>
-</body>
-</html>
+        else if (rank === 3) badgeHTML = '<div class="badge badge-prize">🥉 3rd Place ($40)</di
